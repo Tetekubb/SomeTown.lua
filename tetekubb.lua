@@ -193,7 +193,7 @@ local function TeleportAndCreateStoneOnlyPart()
     NewPart.Anchored = true
     NewPart.CanCollide = true 
     NewPart.Size = PartSize 
-    NewPart.BrickColor = BrickColor.new("Medium stone grey")
+    NewPart.BrickColor = BrickColor.new("Medium stone grey") -- สีเทาหิน
     NewPart.Material = Enum.Material.Neon
     local NewPartCFrame = TargetCFrame_StoneOnly + Vector3.new(0, PartYOffset_Other, 0)
     NewPart.CFrame = NewPartCFrame
@@ -214,7 +214,7 @@ ScreenGui.DisplayOrder = 999
 
 -- กำหนดความสูงคงที่ของ GUI ที่มองเห็นได้
 local UI_WIDTH = 200
-local UI_HEIGHT = 200 -- กำหนดความสูงที่มองเห็นได้เพียง 200
+local UI_HEIGHT = 200 -- กำหนดความสูงที่มองเห็นได้
 
 -- 1. สร้าง Shadow Frame (ขนาดตาม UI_HEIGHT ที่จำกัด)
 local ShadowFrame = Instance.new("Frame")
@@ -229,7 +229,7 @@ UICorner_Shadow.CornerRadius = CornerRadius
 UICorner_Shadow.Parent = ShadowFrame
 
 -- 2. สร้าง Frame หลัก (Main UI)
-local MainFrame = Instance.new("Frame") -- ยังคงใช้ Frame นี้เป็น Container สำหรับ Title และ ScrollingFrame
+local MainFrame = Instance.new("Frame") 
 MainFrame.Size = UDim2.new(0, UI_WIDTH, 0, UI_HEIGHT + 30) -- +30 สำหรับ Title Bar
 MainFrame.Position = UDim2.new(0.5, -(UI_WIDTH/2), 0.5, -(UI_HEIGHT/2) - 15)
 MainFrame.BackgroundColor3 = Color_DarkGrey 
@@ -258,25 +258,29 @@ ScrollFrame.Size = UDim2.new(1, 0, 1, -30) -- กินพื้นที่ท�
 ScrollFrame.Position = UDim2.new(0, 0, 0, 30)
 ScrollFrame.BackgroundColor3 = Color_DarkGrey
 ScrollFrame.ScrollBarThickness = 6
-ScrollFrame.CanvasSize = UDim2.new(0, 0, 2, 0) -- *** สำคัญ: กำหนด CanvasSize ให้ใหญ่พอสำหรับ 6 ปุ่ม + Padding
+ScrollFrame.BackgroundTransparency = 1 -- ทำให้พื้นหลังเป็นสีเดียวกับ MainFrame
+-- การคำนวณ CanvasSize: (จำนวนปุ่ม * ความสูงปุ่ม) + (จำนวนปุ่ม * Padding)
+local NUM_BUTTONS = 6
+local BUTTON_HEIGHT = 35
+local PADDING_Y = 5
+local TOTAL_CONTENT_HEIGHT = (NUM_BUTTONS * BUTTON_HEIGHT) + (NUM_BUTTONS * PADDING_Y) + 5
+ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, TOTAL_CONTENT_HEIGHT) 
 ScrollFrame.Parent = MainFrame
 
 -- 5. เพิ่ม UIListLayout เพื่อจัดเรียงปุ่มอัตโนมัติ
 local ListLayout = Instance.new("UIListLayout")
 ListLayout.FillDirection = Enum.FillDirection.Vertical
 ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-ListLayout.Padding = UDim.new(0, 5) -- ระยะห่างระหว่างปุ่ม
+ListLayout.Padding = UDim.new(0, PADDING_Y) -- ระยะห่างระหว่างปุ่ม
 ListLayout.Parent = ScrollFrame
 
 -- 6. สร้างปุ่มทั้งหมด
-local ButtonHeight = 35 -- กำหนดความสูงคงที่ของปุ่ม
-local ButtonHeightScale = UDim2.new(0, UI_WIDTH * 0.8, 0, ButtonHeight)
-
 -- ฟังก์ชันย่อเพื่อสร้างปุ่ม
 local function createButton(name, text, color, clickFunction, parent)
     local Button = Instance.new("TextButton")
     Button.Name = name
-    Button.Size = UDim2.new(0.8, 0, 0, ButtonHeight) -- ใช้ Offset สำหรับความสูง
+    -- ใช้ Scale X=1 และ Offset Y ที่กำหนด
+    Button.Size = UDim2.new(1, -20, 0, BUTTON_HEIGHT) -- ใช้ 1,-20 เพื่อให้มีขอบซ้ายขวา 10px
     Button.BackgroundColor3 = color
     Button.Text = text
     Button.TextColor3 = Color3.fromRGB(255, 255, 255)
