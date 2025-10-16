@@ -47,12 +47,25 @@ local TargetCFrame_StoneOnly = CFrame.new(
     0.999944627, -5.96996324e-06, 0.0105238901
 )
 
+-- 🌟 [ใหม่] CFrame เป้าหมาย: พิกัด "ตลาดโลก" (ไม่ลง Y-Offset)
+local TargetCFrame_Market = CFrame.new(
+    2853.85327, 14.2821674, 2111.80225,
+    -0.449180543, -3.93920914e-08, -0.893441021,
+    -5.03154709e-08, 1, -1.87940312e-08,
+    0.893441021, 3.65119917e-08, -0.449180543
+)
+
+
 -- ค่าชดเชย Y สำหรับพิกัดเก่า
 local FinalCharacterYOffset_Old = -10 
 local PartYOffset_Old = -15
 
 -- ค่าชดเชย Y สำหรับพิกัดอื่น (Part เท่านั้น)
 local PartYOffset_Other = -10 -- Part จะถูกสร้างที่ Y-10 จากจุดวาป
+
+-- 🌟 [ใหม่] ค่าชดเชย Y สำหรับ "ตลาดโลก"
+local FinalCharacterY_Market = 7 
+local PartY_Market = 2 
 
 local PartHeight = 5 
 local PartSize = Vector3.new(5, PartHeight, 5) 
@@ -74,12 +87,15 @@ local Color_YellowPrimary = Color3.fromRGB(255, 180, 0)
 local Color_PurplePrimary = Color3.fromRGB(150, 50, 255) 
 local Color_OrangePrimary = Color3.fromRGB(255, 100, 0) 
 local Color_StonePrimary = Color3.fromRGB(150, 150, 150) 
+local Color_CyanPrimary = Color3.fromRGB(0, 200, 200) -- 🌟 [ใหม่] สีสำหรับตลาดโลก
 local CornerRadius = UDim.new(0, 8) 
 local SmallCornerRadius = UDim.new(0, 5) 
 
 local ToggleKey = Enum.KeyCode.RightControl 
 
--- ฟังก์ชัน Teleport ทั้ง 6 ฟังก์ชัน (ไม่เปลี่ยนแปลง)
+-- ฟังก์ชัน Teleport ทั้ง 6 ฟังก์ชัน (ละไว้เพื่อความกระชับ)
+-- ... [ฟังก์ชัน TeleportAndCreateOldPart, TeleportAndCreateFarmPart, TeleportAndCreateBlueLandPart, TeleportAndCreateBellLandPart, TeleportAndCreateStoneLandPart, TeleportAndCreateStoneOnlyPart เหมือนเดิม]
+
 local function TeleportAndCreateOldPart()
     local Character = Player.Character or Player.CharacterAdded:Wait()
     local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
@@ -193,9 +209,38 @@ local function TeleportAndCreateStoneOnlyPart()
     NewPart.Anchored = true
     NewPart.CanCollide = true 
     NewPart.Size = PartSize 
-    NewPart.BrickColor = BrickColor.new("Medium stone grey") -- สีเทาหิน
+    NewPart.BrickColor = BrickColor.new("Medium stone grey")
     NewPart.Material = Enum.Material.Neon
     local NewPartCFrame = TargetCFrame_StoneOnly + Vector3.new(0, PartYOffset_Other, 0)
+    NewPart.CFrame = NewPartCFrame
+    NewPart.Parent = game.Workspace
+end
+
+-- 🌟 [ใหม่] ฟังก์ชันสำหรับ Teleport และสร้าง Part (สำหรับพิกัด "ตลาดโลก")
+local function TeleportAndCreateMarketPart()
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+    if not HumanoidRootPart then warn("HumanoidRootPart not found!"); return end
+    
+    -- 1. วาปตัวละคร: เปลี่ยนพิกัด Y ของ CFrame เดิมเป็น FinalCharacterY_Market (7)
+    local CharacterPosition = TargetCFrame_Market.p
+    local NewCharacterCFrame = CFrame.new(CharacterPosition.X, FinalCharacterY_Market, CharacterPosition.Z) * (TargetCFrame_Market - CharacterPosition)
+    HumanoidRootPart.CFrame = NewCharacterCFrame
+
+    -- 2. สร้าง Part 
+    local ExistingPart = game.Workspace:FindFirstChild("ExecutorPart")
+    if ExistingPart then ExistingPart:Destroy() end
+    
+    local NewPart = Instance.new("Part")
+    NewPart.Name = "ExecutorPart"
+    NewPart.Anchored = true
+    NewPart.CanCollide = true 
+    NewPart.Size = PartSize 
+    NewPart.BrickColor = BrickColor.new("Cyan") -- สีฟ้า/เขียวอมฟ้า
+    NewPart.Material = Enum.Material.Neon
+    
+    -- Part ตลาดโลก: สร้างที่ PartY_Market (2)
+    local NewPartCFrame = CFrame.new(CharacterPosition.X, PartY_Market, CharacterPosition.Z)
     NewPart.CFrame = NewPartCFrame
     NewPart.Parent = game.Workspace
 end
@@ -214,12 +259,15 @@ ScreenGui.DisplayOrder = 999
 
 -- กำหนดความสูงคงที่ของ GUI ที่มองเห็นได้
 local UI_WIDTH = 200
-local UI_HEIGHT = 200 -- กำหนดความสูงที่มองเห็นได้
+local UI_HEIGHT = 220 -- เพิ่มความสูง GUI หลักเป็น 220
+local BUTTON_HEIGHT = 35
+local PADDING_Y = 5
+local NUM_BUTTONS = 7 -- 🌟 [ใหม่] จำนวนปุ่มทั้งหมด
 
 -- 1. สร้าง Shadow Frame (ขนาดตาม UI_HEIGHT ที่จำกัด)
 local ShadowFrame = Instance.new("Frame")
 ShadowFrame.Size = UDim2.new(0, UI_WIDTH + 4, 0, UI_HEIGHT + 4 + 30) -- +4 สำหรับขอบ, +30 สำหรับ Title Bar
-ShadowFrame.Position = UDim2.new(0.5, -(UI_WIDTH/2) - 2, 0.5, -(UI_HEIGHT/2) - 2 - 15) -- ปรับตำแหน่งกลางจอ
+ShadowFrame.Position = UDim2.new(0.5, -(UI_WIDTH/2) - 2, 0.5, -(UI_HEIGHT/2) - 2 - 15) 
 ShadowFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ShadowFrame.BackgroundTransparency = 0.5
 ShadowFrame.Parent = ScreenGui
@@ -254,16 +302,14 @@ Title.Parent = MainFrame
 -- 4. สร้าง ScrollingFrame สำหรับปุ่มวาป
 local ScrollFrame = Instance.new("ScrollingFrame")
 ScrollFrame.Name = "TeleportScrollFrame"
-ScrollFrame.Size = UDim2.new(1, 0, 1, -30) -- กินพื้นที่ทั้งหมด ยกเว้น Title Bar
+ScrollFrame.Size = UDim2.new(1, 0, 1, -30) 
 ScrollFrame.Position = UDim2.new(0, 0, 0, 30)
 ScrollFrame.BackgroundColor3 = Color_DarkGrey
 ScrollFrame.ScrollBarThickness = 6
-ScrollFrame.BackgroundTransparency = 1 -- ทำให้พื้นหลังเป็นสีเดียวกับ MainFrame
--- การคำนวณ CanvasSize: (จำนวนปุ่ม * ความสูงปุ่ม) + (จำนวนปุ่ม * Padding)
-local NUM_BUTTONS = 6
-local BUTTON_HEIGHT = 35
-local PADDING_Y = 5
-local TOTAL_CONTENT_HEIGHT = (NUM_BUTTONS * BUTTON_HEIGHT) + (NUM_BUTTONS * PADDING_Y) + 5
+ScrollFrame.BackgroundTransparency = 1 
+
+-- 🌟 [สำคัญ] คำนวณ CanvasSize ใหม่สำหรับ 7 ปุ่ม
+local TOTAL_CONTENT_HEIGHT = (NUM_BUTTONS * BUTTON_HEIGHT) + ((NUM_BUTTONS + 1) * PADDING_Y)
 ScrollFrame.CanvasSize = UDim2.new(0, 0, 0, TOTAL_CONTENT_HEIGHT) 
 ScrollFrame.Parent = MainFrame
 
@@ -271,16 +317,14 @@ ScrollFrame.Parent = MainFrame
 local ListLayout = Instance.new("UIListLayout")
 ListLayout.FillDirection = Enum.FillDirection.Vertical
 ListLayout.HorizontalAlignment = Enum.HorizontalAlignment.Center
-ListLayout.Padding = UDim.new(0, PADDING_Y) -- ระยะห่างระหว่างปุ่ม
+ListLayout.Padding = UDim.new(0, PADDING_Y) 
 ListLayout.Parent = ScrollFrame
 
--- 6. สร้างปุ่มทั้งหมด
--- ฟังก์ชันย่อเพื่อสร้างปุ่ม
+-- 6. สร้างปุ่มทั้งหมด (ใช้ฟังก์ชัน createButton)
 local function createButton(name, text, color, clickFunction, parent)
     local Button = Instance.new("TextButton")
     Button.Name = name
-    -- ใช้ Scale X=1 และ Offset Y ที่กำหนด
-    Button.Size = UDim2.new(1, -20, 0, BUTTON_HEIGHT) -- ใช้ 1,-20 เพื่อให้มีขอบซ้ายขวา 10px
+    Button.Size = UDim2.new(1, -20, 0, BUTTON_HEIGHT) 
     Button.BackgroundColor3 = color
     Button.Text = text
     Button.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -303,6 +347,7 @@ local TeleportButton_BlueLand = createButton("BlueLandTeleport", "✨ เบิ�
 local TeleportButton_BellLand = createButton("BellLandTeleport", "🔔 วาปเบลฟ้า 🔔", Color_PurplePrimary, TeleportAndCreateBellLandPart, ScrollFrame)
 local TeleportButton_StoneLand = createButton("StoneLandTeleport", "🧱 เบิกรถโพหิน 🧱", Color_OrangePrimary, TeleportAndCreateStoneLandPart, ScrollFrame)
 local TeleportButton_StoneOnly = createButton("StoneOnlyTeleport", "🗿 วาปโพหิน 🗿", Color_StonePrimary, TeleportAndCreateStoneOnlyPart, ScrollFrame)
+local TeleportButton_Market = createButton("MarketTeleport", "💰 วาปตลาดโลก 💰", Color_CyanPrimary, TeleportAndCreateMarketPart, ScrollFrame) -- 🌟 [ใหม่] ปุ่มตลาดโลก
 
 
 -- GUI ปุ่มเล็กสำหรับสลับการมองเห็น (Toggle Button)
@@ -366,6 +411,7 @@ setupHover(TeleportButton_BlueLand, Color_YellowPrimary, Color3.fromRGB(255, 210
 setupHover(TeleportButton_BellLand, Color_PurplePrimary, Color3.fromRGB(180, 80, 255))
 setupHover(TeleportButton_StoneLand, Color_OrangePrimary, Color3.fromRGB(255, 140, 50))
 setupHover(TeleportButton_StoneOnly, Color_StonePrimary, Color3.fromRGB(180, 180, 180)) 
+setupHover(TeleportButton_Market, Color_CyanPrimary, Color3.fromRGB(50, 255, 255)) -- 🌟 [ใหม่] Hover ตลาดโลก
 
 --###################################################################################
 --# 🖱️ ระบบลาก UI (ใช้ Title ใน MainFrame ลาก)
