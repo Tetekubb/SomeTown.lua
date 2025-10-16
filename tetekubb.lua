@@ -31,12 +31,20 @@ local TargetCFrame_BellLand = CFrame.new(
     0.24724175, 3.27715881e-08, 0.968953848
 )
 
--- 🌟 [เพิ่ม] CFrame เป้าหมาย: พิกัด "เบิกรถโพหิน" (ไม่ลง Y-Offset)
+-- CFrame เป้าหมาย: พิกัด "เบิกรถโพหิน" (ไม่ลง Y-Offset)
 local TargetCFrame_StoneLand = CFrame.new(
     5468.83594, 63.6300659, -3577.27319,
     -0.997944832, -2.59640807e-08, 0.0640791059,
     -2.11583906e-08, 1, 7.56748193e-08,
     -0.0640791059, 7.41634878e-08, -0.997944832
+)
+
+-- 🌟 [เพิ่ม] CFrame เป้าหมาย: พิกัด "โพหิน" (ไม่ลง Y-Offset)
+local TargetCFrame_StoneOnly = CFrame.new(
+    6146.77832, 48.7627831, -4196.55225,
+    0.0105238901, -1.32986188e-05, -0.999944627,
+    6.10958568e-06, 1, -1.32350551e-05,
+    0.999944627, -5.96996324e-06, 0.0105238901
 )
 
 -- ค่าชดเชย Y สำหรับพิกัดเก่า
@@ -64,7 +72,8 @@ local Color_GreenPrimary = Color3.fromRGB(0, 150, 0)
 local Color_BluePrimary = Color3.fromRGB(50, 100, 255) 
 local Color_YellowPrimary = Color3.fromRGB(255, 180, 0) 
 local Color_PurplePrimary = Color3.fromRGB(150, 50, 255) 
-local Color_OrangePrimary = Color3.fromRGB(255, 100, 0) -- 🌟 สีใหม่สำหรับปุ่มโพหิน
+local Color_OrangePrimary = Color3.fromRGB(255, 100, 0) 
+local Color_StonePrimary = Color3.fromRGB(150, 150, 150) -- 🌟 สีใหม่สำหรับปุ่มโพหิน
 local CornerRadius = UDim.new(0, 8) 
 local SmallCornerRadius = UDim.new(0, 5) 
 
@@ -198,7 +207,7 @@ local function TeleportAndCreateBellLandPart()
     NewPart.Parent = game.Workspace
 end
 
--- 🌟 [เพิ่ม] ฟังก์ชันสำหรับ Teleport และสร้าง Part (สำหรับพิกัด "เบิกรถโพหิน": ไม่ลง Y)
+-- ฟังก์ชันสำหรับ Teleport และสร้าง Part (สำหรับพิกัด "เบิกรถโพหิน": ไม่ลง Y)
 local function TeleportAndCreateStoneLandPart()
     local Character = Player.Character or Player.CharacterAdded:Wait()
     local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
@@ -230,6 +239,38 @@ local function TeleportAndCreateStoneLandPart()
     NewPart.Parent = game.Workspace
 end
 
+-- 🌟 [เพิ่ม] ฟังก์ชันสำหรับ Teleport และสร้าง Part (สำหรับพิกัด "โพหิน": ไม่ลง Y)
+local function TeleportAndCreateStoneOnlyPart()
+    local Character = Player.Character or Player.CharacterAdded:Wait()
+    local HumanoidRootPart = Character:FindFirstChild("HumanoidRootPart")
+
+    if not HumanoidRootPart then 
+        warn("HumanoidRootPart not found!")
+        return 
+    end
+
+    -- 1. วาปตัวละคร: วาปตรงพิกัด Y (ไม่มีการชดเชย)
+    local NewCharacterCFrame = TargetCFrame_StoneOnly 
+    HumanoidRootPart.CFrame = NewCharacterCFrame
+
+    -- 2. สร้าง Part 
+    local ExistingPart = game.Workspace:FindFirstChild("ExecutorPart")
+    if ExistingPart then ExistingPart:Destroy() end
+    
+    local NewPart = Instance.new("Part")
+    NewPart.Name = "ExecutorPart"
+    NewPart.Anchored = true
+    NewPart.CanCollide = true 
+    NewPart.Size = PartSize 
+    NewPart.BrickColor = BrickColor.new("Medium stone grey") -- สีเทาหิน
+    NewPart.Material = Enum.Material.Neon
+    
+    -- Part โพหิน ใช้ Y-Offset -10
+    local NewPartCFrame = TargetCFrame_StoneOnly + Vector3.new(0, PartYOffset_Other, 0)
+    NewPart.CFrame = NewPartCFrame
+    NewPart.Parent = game.Workspace
+end
+
 --###################################################################################
 --# การสร้าง GUI
 --###################################################################################
@@ -243,10 +284,10 @@ ScreenGui.Parent = Player.PlayerGui
 ScreenGui.DisplayOrder = 999 
 
 -- 1. สร้าง Shadow Frame
--- 📐 ปรับความสูง: จาก 224 เป็น 264 (เพิ่มพื้นที่สำหรับปุ่มที่ 5)
+-- 📐 ปรับความสูง: จาก 264 เป็น 304 (เพิ่มพื้นที่สำหรับปุ่มที่ 6)
 local ShadowFrame = Instance.new("Frame")
-ShadowFrame.Size = UDim2.new(0, 204, 0, 264) 
-ShadowFrame.Position = UDim2.new(0.5, -102, 0.5, -133.5) -- ปรับตำแหน่งกลางจอ
+ShadowFrame.Size = UDim2.new(0, 204, 0, 304) 
+ShadowFrame.Position = UDim2.new(0.5, -102, 0.5, -153.5) -- ปรับตำแหน่งกลางจอ
 ShadowFrame.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 ShadowFrame.BackgroundTransparency = 0.5
 ShadowFrame.Parent = ScreenGui
@@ -256,10 +297,10 @@ UICorner_Shadow.CornerRadius = CornerRadius
 UICorner_Shadow.Parent = ShadowFrame
 
 -- 2. สร้าง Frame หลัก (Main UI)
--- 📐 ปรับความสูง: จาก 220 เป็น 260
+-- 📐 ปรับความสูง: จาก 260 เป็น 300
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 200, 0, 260) 
-MainFrame.Position = UDim2.new(0.5, -100, 0.5, -130) -- ปรับตำแหน่งกลางจอ
+MainFrame.Size = UDim2.new(0, 200, 0, 300) 
+MainFrame.Position = UDim2.new(0.5, -100, 0.5, -150) -- ปรับตำแหน่งกลางจอ
 MainFrame.BackgroundColor3 = Color_DarkGrey 
 MainFrame.Parent = ScreenGui
 MainFrame.Visible = false 
@@ -280,13 +321,13 @@ Title.TextSize = 18
 Title.Parent = MainFrame
 
 -- 4. สร้างปุ่มทั้งหมด
-local ButtonHeightScale = 0.14 -- ปรับสเกลปุ่มเพื่อรองรับ 5 ปุ่ม (ประมาณ 14%)
+local ButtonHeightScale = 0.12 -- ปรับสเกลปุ่มเพื่อรองรับ 6 ปุ่ม (ประมาณ 12%)
 
 -- สร้างปุ่มสำหรับ Teleport (เก่า)
 local TeleportButton_Old = Instance.new("TextButton")
 TeleportButton_Old.Name = "OldTeleport"
 TeleportButton_Old.Size = UDim2.new(0.8, 0, ButtonHeightScale, 0) 
-TeleportButton_Old.Position = UDim2.new(0.1, 0, 0.2, 0) -- ตำแหน่ง 1 (ปรับให้ลงตัว)
+TeleportButton_Old.Position = UDim2.new(0.1, 0, 0.15, 0) -- ตำแหน่ง 1 (ปรับใหม่)
 TeleportButton_Old.BackgroundColor3 = Color_GreenPrimary
 TeleportButton_Old.Text = "⚡ ปากัวธรรมดา ⚡" 
 TeleportButton_Old.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -302,7 +343,7 @@ UICorner_Button_Old.Parent = TeleportButton_Old
 local TeleportButton_Farm = Instance.new("TextButton")
 TeleportButton_Farm.Name = "FarmTeleport"
 TeleportButton_Farm.Size = UDim2.new(0.8, 0, ButtonHeightScale, 0)
-TeleportButton_Farm.Position = UDim2.new(0.1, 0, 0.36, 0) -- ตำแหน่ง 2
+TeleportButton_Farm.Position = UDim2.new(0.1, 0, 0.29, 0) -- ตำแหน่ง 2
 TeleportButton_Farm.BackgroundColor3 = Color_BluePrimary
 TeleportButton_Farm.Text = "⛏️ วาปฟามแร่ ⛏️" 
 TeleportButton_Farm.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -318,7 +359,7 @@ UICorner_Button_Farm.Parent = TeleportButton_Farm
 local TeleportButton_BlueLand = Instance.new("TextButton")
 TeleportButton_BlueLand.Name = "BlueLandTeleport"
 TeleportButton_BlueLand.Size = UDim2.new(0.8, 0, ButtonHeightScale, 0)
-TeleportButton_BlueLand.Position = UDim2.new(0.1, 0, 0.52, 0) -- ตำแหน่ง 3
+TeleportButton_BlueLand.Position = UDim2.new(0.1, 0, 0.43, 0) -- ตำแหน่ง 3
 TeleportButton_BlueLand.BackgroundColor3 = Color_YellowPrimary
 TeleportButton_BlueLand.Text = "✨ เบิกรถแลนฟ้า ✨" 
 TeleportButton_BlueLand.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -334,7 +375,7 @@ UICorner_Button_BlueLand.Parent = TeleportButton_BlueLand
 local TeleportButton_BellLand = Instance.new("TextButton")
 TeleportButton_BellLand.Name = "BellLandTeleport"
 TeleportButton_BellLand.Size = UDim2.new(0.8, 0, ButtonHeightScale, 0)
-TeleportButton_BellLand.Position = UDim2.new(0.1, 0, 0.68, 0) -- ตำแหน่ง 4
+TeleportButton_BellLand.Position = UDim2.new(0.1, 0, 0.57, 0) -- ตำแหน่ง 4
 TeleportButton_BellLand.BackgroundColor3 = Color_PurplePrimary
 TeleportButton_BellLand.Text = "🔔 วาปเบลฟ้า 🔔" 
 TeleportButton_BellLand.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -346,11 +387,11 @@ local UICorner_Button_BellLand = Instance.new("UICorner")
 UICorner_Button_BellLand.CornerRadius = CornerRadius
 UICorner_Button_BellLand.Parent = TeleportButton_BellLand
 
--- 🌟 [เพิ่ม] สร้างปุ่มสำหรับ Teleport (เบิกรถโพหิน)
+-- สร้างปุ่มสำหรับ Teleport (เบิกรถโพหิน)
 local TeleportButton_StoneLand = Instance.new("TextButton")
 TeleportButton_StoneLand.Name = "StoneLandTeleport"
 TeleportButton_StoneLand.Size = UDim2.new(0.8, 0, ButtonHeightScale, 0)
-TeleportButton_StoneLand.Position = UDim2.new(0.1, 0, 0.84, 0) -- ตำแหน่ง 5
+TeleportButton_StoneLand.Position = UDim2.new(0.1, 0, 0.71, 0) -- ตำแหน่ง 5
 TeleportButton_StoneLand.BackgroundColor3 = Color_OrangePrimary
 TeleportButton_StoneLand.Text = "🧱 เบิกรถโพหิน 🧱" 
 TeleportButton_StoneLand.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -361,6 +402,22 @@ TeleportButton_StoneLand.Parent = MainFrame
 local UICorner_Button_StoneLand = Instance.new("UICorner")
 UICorner_Button_StoneLand.CornerRadius = CornerRadius
 UICorner_Button_StoneLand.Parent = TeleportButton_StoneLand
+
+-- 🌟 [เพิ่ม] สร้างปุ่มสำหรับ Teleport (โพหิน)
+local TeleportButton_StoneOnly = Instance.new("TextButton")
+TeleportButton_StoneOnly.Name = "StoneOnlyTeleport"
+TeleportButton_StoneOnly.Size = UDim2.new(0.8, 0, ButtonHeightScale, 0)
+TeleportButton_StoneOnly.Position = UDim2.new(0.1, 0, 0.85, 0) -- ตำแหน่ง 6
+TeleportButton_StoneOnly.BackgroundColor3 = Color_StonePrimary
+TeleportButton_StoneOnly.Text = "🗿 วาปโพหิน 🗿" 
+TeleportButton_StoneOnly.TextColor3 = Color3.fromRGB(255, 255, 255)
+TeleportButton_StoneOnly.Font = Enum.Font.SourceSansSemibold
+TeleportButton_StoneOnly.TextSize = 16
+TeleportButton_StoneOnly.Parent = MainFrame
+
+local UICorner_Button_StoneOnly = Instance.new("UICorner")
+UICorner_Button_StoneOnly.CornerRadius = CornerRadius
+UICorner_Button_StoneOnly.Parent = TeleportButton_StoneOnly
 
 
 -- GUI ปุ่มเล็กสำหรับสลับการมองเห็น (Toggle Button)
@@ -413,7 +470,8 @@ TeleportButton_Old.MouseButton1Click:Connect(TeleportAndCreateOldPart)
 TeleportButton_Farm.MouseButton1Click:Connect(TeleportAndCreateFarmPart) 
 TeleportButton_BlueLand.MouseButton1Click:Connect(TeleportAndCreateBlueLandPart) 
 TeleportButton_BellLand.MouseButton1Click:Connect(TeleportAndCreateBellLandPart)
-TeleportButton_StoneLand.MouseButton1Click:Connect(TeleportAndCreateStoneLandPart) -- ปุ่มใหม่
+TeleportButton_StoneLand.MouseButton1Click:Connect(TeleportAndCreateStoneLandPart)
+TeleportButton_StoneOnly.MouseButton1Click:Connect(TeleportAndCreateStoneOnlyPart) -- ปุ่มใหม่
 
 -- เอฟเฟกต์ Hover
 local function setupHover(button, originalColor, hoverColor)
@@ -429,7 +487,8 @@ setupHover(TeleportButton_Old, Color_GreenPrimary, Color3.fromRGB(0, 200, 0))
 setupHover(TeleportButton_Farm, Color_BluePrimary, Color3.fromRGB(80, 130, 255)) 
 setupHover(TeleportButton_BlueLand, Color_YellowPrimary, Color3.fromRGB(255, 210, 50)) 
 setupHover(TeleportButton_BellLand, Color_PurplePrimary, Color3.fromRGB(180, 80, 255))
-setupHover(TeleportButton_StoneLand, Color_OrangePrimary, Color3.fromRGB(255, 140, 50)) -- Hover สีใหม่
+setupHover(TeleportButton_StoneLand, Color_OrangePrimary, Color3.fromRGB(255, 140, 50))
+setupHover(TeleportButton_StoneOnly, Color_StonePrimary, Color3.fromRGB(180, 180, 180)) -- Hover สีใหม่
 
 --###################################################################################
 --# 🖱️ ระบบลาก UI 
